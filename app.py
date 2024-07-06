@@ -1,7 +1,9 @@
 import sys
 from utilities import verify_user
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, QPushButton, QLineEdit, QDialog
+from PyQt5.QtWidgets import (
+    QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, QPushButton, QLineEdit, QMessageBox
+) 
 from PyQt5.QtCore import QSize
 
 widgets = dict()
@@ -14,6 +16,14 @@ class AccountItem(QWidget):
         self.id = id
         
         """TODO: Make item for password list"""
+
+
+class Error(QMessageBox):
+    def __init__(self, parent: QWidget, error: str):
+        super(QMessageBox, self).__init__(parent)
+
+        self.setWindowTitle("Error")
+        self.setText(error)
 
 
 class Home(QWidget):
@@ -51,10 +61,10 @@ class Login(QWidget):
 
     def login(self):
         if verify_user(self.username.text(), self.password.text()):
-            home = Home(self.parent())
-            self.parent().setCentralWidget(home)
+            self.parent().setCentralWidget(widgets["Home"])
         else:
-            dialog = QDialog(self)
+            error = Error(self, "User name or password is invalid.")
+            error.exec()
 
 
 class MainWindow(QMainWindow):
