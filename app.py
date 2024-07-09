@@ -3,13 +3,12 @@ from utilities import create_user, verify_user, get_user_id, get_name
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import (
     QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, 
-    QPushButton, QLineEdit, QMessageBox
+    QPushButton, QLineEdit, QMessageBox, QListWidget, QListWidgetItem
 ) 
 from PyQt5.QtCore import QSize
 
-user_id = -1
 
-class AccountItem(QWidget):
+class AccountItem(QListWidgetItem):
     def __init__(self, parent: QWidget, id: int, account: str, username: str, password: str):
         super(QWidget, self).__init__(parent)
         
@@ -78,10 +77,10 @@ class Home(QWidget):
         layout = QGridLayout(self)
         self.setLayout(layout)
 
-        if user_id == -1:
+        if self.parent().user_id == -1:
             text = "Hello"
         else:
-            text = f"Hello, {get_name(user_id)}"
+            text = f"Hello, {get_name(self.parent().user_id)}"
 
         label = QLabel(text, self)
         label.setAlignment(QtCore.Qt.AlignCenter)
@@ -118,7 +117,7 @@ class Login(QWidget):
 
     def login(self):
         if verify_user(self.username.text(), self.password.text()):
-            user_id = get_user_id(self.username.text())
+            self.parent().user_id = get_user_id(self.username.text())
             self.parent().setCentralWidget(Home(self.parent()))
         else:
             error = Error(self, "User name or password is invalid.")
@@ -130,6 +129,9 @@ class Login(QWidget):
 
 
 class MainWindow(QMainWindow):
+    user_id = -1
+
+
     def __init__(self):
         # Initialize the Main Window
         super(QMainWindow, self).__init__()
