@@ -1,52 +1,27 @@
 import sys
 from utilities import create_user, verify_user, get_user_id, get_name
+from pages import account, add_account, confrimation, create_user, home, login
+
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import (
-    QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, 
-    QPushButton, QLineEdit, QMessageBox, QListWidget, QListWidgetItem
-) 
+    QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, QMessageBox
+)
+
 from PyQt5.QtCore import QSize
-
-
-class AccountItem(QListWidgetItem):
-    def __init__(self, parent: QWidget, id: int, account: str, username: str, password: str):
-        super(QWidget, self).__init__(parent)
-        
-        self.id = id
-        
-        """TODO: Make item for password list"""
 
 
 class CreateUser(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
         
-        layout = QGridLayout(self)
-        self.setLayout(layout)
+        self.ui = create_user.CreateUserUi()
+        self.ui.setupUi(self)
 
-        label = QLabel("Create User", self)
-        label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(label)
-
-        self.name = QLineEdit(self)
-        self.name.setPlaceholderText("Name")
-        layout.addWidget(self.name)
-
-        self.username = QLineEdit(self)
-        self.username.setPlaceholderText("User name");
-        layout.addWidget(self.username)
-        
-        self.password = QLineEdit(self)
-        self.password.setPlaceholderText("Password")
-        layout.addWidget(self.password)
-
-        button = QPushButton("Create User")
-        button.clicked.connect(self.add_user)
-        layout.addWidget(button)
+        self.ui.createUser.clicked.connect(self.add_user)
 
 
     def add_user(self):
-        status = create_user(self.name.text(), self.username.text(), self.password.text())
+        status = create_user(self.ui.name.text(), self.ui.username.text(), self.ui.password.text())
         if status == 1:
             error = Error(self, "Name cannot be empty.")
             error.exec()
@@ -91,40 +66,23 @@ class Login(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
         
-        layout = QGridLayout(self)
-        self.setLayout(layout)
+        self.ui = login.LoginUi()
+        self.ui.setupUi(self)
 
-        label = QLabel("PassKeeper", self)
-        label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(label)
-
-        self.username = QLineEdit(self)
-        self.username.setPlaceholderText("User name")
-        layout.addWidget(self.username)
-        
-        self.password = QLineEdit(self)
-        self.password.setPlaceholderText("Password")
-        layout.addWidget(self.password)
-
-        login_btn = QPushButton("Log In")
-        login_btn.clicked.connect(self.login)
-        layout.addWidget(login_btn)
-        
-        create_user_btn = QPushButton("Create New User")
-        create_user_btn.clicked.connect(self.create_user)
-        layout.addWidget(create_user_btn)
+        self.ui.login.clicked.connect(self.on_login)
+        self.ui.createUser.clicked.connect(self.on_create_user)
 
 
-    def login(self):
-        if verify_user(self.username.text(), self.password.text()):
-            self.parent().user_id = get_user_id(self.username.text())
+    def on_login(self):
+        if verify_user(self.ui.username.text(), self.ui.password.text()):
+            self.parent().user_id = get_user_id(self.ui.username.text())
             self.parent().setCentralWidget(Home(self.parent()))
         else:
             error = Error(self, "User name or password is invalid.")
             error.exec()
 
 
-    def create_user(self):
+    def on_create_user(self):
         self.parent().setCentralWidget(CreateUser(self.parent()))
 
 
