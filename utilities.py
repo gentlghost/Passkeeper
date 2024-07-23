@@ -8,6 +8,7 @@ ph = PasswordHasher()
 
 
 def create_account(user_id: int, service: str, username: str, password: str) -> int:
+    # Check if service, username, and password are valid
     if not service or service.isspace():
         return 1
     
@@ -26,13 +27,13 @@ def create_account(user_id: int, service: str, username: str, password: str) -> 
     pw_encrypt = fernet.encrypt(password.encode())
     cursor.execute("""
         INSERT INTO accounts(user_id, service, username, hash) VALUES(?, ?, ?, ?)
-        """, (user_id, service, username, str(pw_encrypt), ))    
+        """, (user_id, service, username, str(pw_encrypt.decode()), ))    
 
     return 0
 
 
 def create_user(name: str, username: str, password: str) -> int:
-    # Check if name, username, and password is valid
+    # Check if name, username, and password are valid
     if not name or name.isspace():
         return 1
 
@@ -61,7 +62,7 @@ def create_user(name: str, username: str, password: str) -> int:
 def decrypt_password(user_id: int, password: bytes) -> str:
     key = cursor.execute("SELECT pkey FROM users WHERE id = ?", (user_id, )).fetchone()
     fernet = Fernet(key[0])
-    return str(fernet.decrypt(password))
+    return fernet.decrypt(password).decode()
 
 
 def delete_account(account_id: int) -> None:
@@ -69,7 +70,7 @@ def delete_account(account_id: int) -> None:
 
 
 def get_accounts(user_id: int):
-    return cursor.execute("SELECT id, user_id, service, username, hash FROM accounts WHERE user_id = ?", (user_id, ))
+    return cursor.execute("SELECT id, user_id, service, username, hash FROM accounts WHERE user_id = ? ORDER BY service ASC", (user_id, ))
 
 
 def get_name(user_id: int) -> str:

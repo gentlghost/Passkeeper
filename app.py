@@ -1,3 +1,4 @@
+from math import floor
 import sys
 from utilities import (
     create_user, verify_user, get_user_id, get_name, create_account, get_accounts,
@@ -9,23 +10,25 @@ from pages.create_user import CreateUserUi
 from pages.home import HomeUi
 from pages.login import LoginUi
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QDesktopWidget, QMessageBox, QLineEdit
 )
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import Qt, QSize
 
 
 class Account(QWidget):
-    def __init__(self, user_id: int, account_id: int, service: str, username: str, password: str):
-        super(QWidget, self).__init__()
+    def __init__(self, parent: QWidget, user_id: int, account_id: int, service: str, username: str, password: str):
+        super(QWidget, self).__init__(parent)
         
+        self.user_id = user_id
         self.account_id = account_id
+        
         self.ui = AccountUi()
         self.ui.setupUi(self)
         self.ui.service.setText(service)
         self.ui.username.setText(username)
-        self.ui.password.setText(decrypt_password(user_id, password))
+        self.ui.password.setText(decrypt_password(self.user_id, password.encode()))
 
         self.ui.password.setEchoMode(QLineEdit.Password)
 
@@ -45,15 +48,16 @@ class Account(QWidget):
     def on_delete(self, s):
         confirm = QMessageBox(self)
         confirm.setText("Are you sure you want to delete the account?")
-        confirm.standardButtons(QMessageBox.Yes | QMessageBox.No)
-        confirm.setIcon(QMessageBox.question)
+        confirm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm.setIcon(QMessageBox.Question)
         result = confirm.exec()
 
         if result == QMessageBox.No:
             return
         
         if result == QMessageBox.Yes:
-            delete_account(self.account_id)            
+            delete_account(self.account_id)
+            self.parentWidget().layout().removeWidget(self)
 
 
 class AddAccount(QWidget):
@@ -65,7 +69,7 @@ class AddAccount(QWidget):
 
         self.ui.addButton.clicked.connect(self.on_add_account)
         self.ui.backButton.clicked.connect(self.on_back)
-        self.ui.veiwButton.clicked.connect(self.on_view)
+        self.ui.viewButton.clicked.connect(self.on_view)
 
     def on_add_account(self):
         result = create_account(
@@ -163,24 +167,24 @@ class Home(QWidget):
         else:
             self.ui.welcome.setText(f"Hello, {get_name(self.parent().user_id)}")
 
-        self.populate_account_list()
+        self.widget = QWidget()
+        self.vbox = QtWidgets.QVBoxLayout()
+        for account in get_accounts(self.parent().user_id).fetchall():
+            acc_widget = Account(self.widget, account[1], account[0], account[2], account[3], account[4])
+            self.vbox.addWidget(acc_widget)
+        
+        self.widget.setLayout(self.vbox)
+
+        self.ui.passwordHolder.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.ui.passwordHolder.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.passwordHolder.setWidgetResizable(True)
+        self.ui.passwordHolder.setWidget(self.widget)
 
         self.ui.addButton.clicked.connect(self.on_add_account)
         
 
-    def populate_account_list(self):
-        widget = QWidget()
-        vbox = QtWidgets.QVBoxLayout(widget)
-        for account in get_accounts(self.parent().user_id).fetchall():
-            acc_widget = Account(account[1], account[0], account[2], account[3], account[4])
-            vbox.addChildWidget(acc_widget)
-        
-        self.ui.passwordHolder.setWidget(widget)
-
-
     def on_add_account(self):
         self.parent().setCentralWidget(AddAccount(self.parent()))
-
 
 
 class Login(QWidget):
