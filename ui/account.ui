@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>55</height>
+    <height>51</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,12 +52,18 @@
       <property name="text">
        <string>View</string>
       </property>
+      <property name="icon">
+       <iconset theme="edit-find"/>
+      </property>
      </widget>
     </item>
     <item>
      <widget class="QToolButton" name="deleteButton">
       <property name="text">
        <string>Delete</string>
+      </property>
+      <property name="icon">
+       <iconset theme="edit-delete"/>
       </property>
      </widget>
     </item>

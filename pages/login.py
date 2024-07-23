@@ -36,6 +36,7 @@ class LoginUi(object):
         self.verticalLayout.addWidget(self.username)
         self.password = QtWidgets.QLineEdit(self.verticalLayoutWidget_2)
         self.password.setObjectName("password")
+        self.password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.verticalLayout.addWidget(self.password)
         self.login = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
         self.login.setObjectName("login")

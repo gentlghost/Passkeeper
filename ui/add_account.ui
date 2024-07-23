@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>430</y>
+     <y>420</y>
      <width>781</width>
-     <height>161</height>
+     <height>171</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -38,11 +38,34 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="password">
-      <property name="placeholderText">
-       <string>Password</string>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
       </property>
-     </widget>
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="password">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Password</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="veiwButton">
+        <property name="text">
+         <string>View</string>
+        </property>
+        <property name="icon">
+         <iconset theme="edit-find"/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QPushButton" name="addButton">
@@ -56,10 +79,10 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>275</x>
-     <y>200</y>
-     <width>231</width>
-     <height>71</height>
+     <x>225</x>
+     <y>180</y>
+     <width>331</width>
+     <height>91</height>
     </rect>
    </property>
    <property name="font">
@@ -85,6 +108,9 @@
    </property>
    <property name="text">
     <string>Back</string>
+   </property>
+   <property name="icon">
+    <iconset theme="go-previous"/>
    </property>
   </widget>
  </widget>

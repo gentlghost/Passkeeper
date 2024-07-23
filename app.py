@@ -1,26 +1,119 @@
 import sys
-from utilities import create_user, verify_user, get_user_id, get_name
-from pages import account, add_account, confrimation, create_user, home, login
+from utilities import (
+    create_user, verify_user, get_user_id, get_name, create_account, get_accounts,
+    delete_account, decrypt_password
+)
+from pages.account import AccountUi
+from pages.add_account import AddAccountUi
+from pages.create_user import CreateUserUi
+from pages.home import HomeUi
+from pages.login import LoginUi
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import (
-    QMainWindow, QLabel, QGridLayout, QWidget, QDesktopWidget, QMessageBox
+    QMainWindow, QWidget, QDesktopWidget, QMessageBox, QLineEdit
 )
-
 from PyQt5.QtCore import QSize
+
+
+class Account(QWidget):
+    def __init__(self, user_id: int, account_id: int, service: str, username: str, password: str):
+        super(QWidget, self).__init__()
+        
+        self.account_id = account_id
+        self.ui = AccountUi()
+        self.ui.setupUi(self)
+        self.ui.service.setText(service)
+        self.ui.username.setText(username)
+        self.ui.password.setText(decrypt_password(user_id, password))
+
+        self.ui.password.setEchoMode(QLineEdit.Password)
+
+        self.ui.viewButton.clicked.connect(self.on_view)
+        self.ui.deleteButton.clicked.connect(self.on_delete)
+
+
+    def on_view(self):
+        if self.ui.password.echoMode() == QLineEdit.Password:
+            self.ui.password.setEchoMode(QLineEdit.Normal)
+            self.ui.viewButton.setText("Hide")
+        else:
+            self.ui.password.setEchoMode(QLineEdit.Password)
+            self.ui.viewButton.setText("View")
+
+
+    def on_delete(self, s):
+        confirm = QMessageBox(self)
+        confirm.setText("Are you sure you want to delete the account?")
+        confirm.standardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm.setIcon(QMessageBox.question)
+        result = confirm.exec()
+
+        if result == QMessageBox.No:
+            return
+        
+        if result == QMessageBox.Yes:
+            delete_account(self.account_id)            
+
+
+class AddAccount(QWidget):
+    def __init__(self, parent: QWidget):
+        super(QWidget, self).__init__(parent)
+
+        self.ui = AddAccountUi()
+        self.ui.setupUi(self)
+
+        self.ui.addButton.clicked.connect(self.on_add_account)
+        self.ui.backButton.clicked.connect(self.on_back)
+        self.ui.veiwButton.clicked.connect(self.on_view)
+
+    def on_add_account(self):
+        result = create_account(
+            self.parent().user_id, self.ui.service.text(), 
+            self.ui.username.text(), self.ui.password.text()
+            )
+        if result == 1:
+            error = Error(self, "Service cannot be empty.")
+            error.exec()
+        elif result == 2:
+            error = Error(self, "User name cannot be empty.")
+            error.exec()
+        elif result == 3:
+            error = Error(self, "Password cannot be empty.")
+            error.exec()
+        elif result == 4:
+            error = Error(self, "User on service already exists.")
+            error.exec()
+        else:
+            self.parent().setCentralWidget(Home(self.parent()))
+
+
+    def on_back(self):
+        self.parent().setCentralWidget(Home(self.parent()))
+
+
+    def on_view(self):
+        if self.ui.password.echoMode() == QLineEdit.Password:
+            self.ui.password.setEchoMode(QLineEdit.Normal)
+            self.ui.viewButton.setText("Hide")
+        else:
+            self.ui.password.setEchoMode(QLineEdit.Password)
+            self.ui.viewButton.setText("View")
 
 
 class CreateUser(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
         
-        self.ui = create_user.CreateUserUi()
+        self.ui = CreateUserUi()
         self.ui.setupUi(self)
 
-        self.ui.createUser.clicked.connect(self.add_user)
+        self.ui.createUser.clicked.connect(self.on_add_user)
+        self.ui.backButton.clicked.connect(self.on_back)
+        self.ui.viewButton.clicked.connect(self.on_view)
 
 
-    def add_user(self):
+    def on_add_user(self):
         status = create_user(self.ui.name.text(), self.ui.username.text(), self.ui.password.text())
         if status == 1:
             error = Error(self, "Name cannot be empty.")
@@ -38,6 +131,19 @@ class CreateUser(QWidget):
             self.parent().setCentralWidget(Login(self.parent()))
 
 
+    def on_back(self):
+        self.parent().setCentralWidget(Login(self.parent()))
+
+
+    def on_view(self):
+        if self.ui.password.echoMode() == QLineEdit.Password:
+            self.ui.password.setEchoMode(QLineEdit.Normal)
+            self.ui.viewButton.setText("Hide")
+        else:
+            self.ui.password.setEchoMode(QLineEdit.Password)
+            self.ui.viewButton.setText("View")
+
+
 class Error(QMessageBox):
     def __init__(self, parent: QWidget, error: str):
         super(QMessageBox, self).__init__(parent)
@@ -49,24 +155,39 @@ class Error(QMessageBox):
 class Home(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
-        layout = QGridLayout(self)
-        self.setLayout(layout)
+        self.ui = HomeUi()
+        self.ui.setupUi(self)
 
         if self.parent().user_id == -1:
-            text = "Hello"
+            self.ui.welcome.setText("Hello")
         else:
-            text = f"Hello, {get_name(self.parent().user_id)}"
+            self.ui.welcome.setText(f"Hello, {get_name(self.parent().user_id)}")
 
-        label = QLabel(text, self)
-        label.setAlignment(QtCore.Qt.AlignCenter)
-        layout.addWidget(label)
+        self.populate_account_list()
+
+        self.ui.addButton.clicked.connect(self.on_add_account)
+        
+
+    def populate_account_list(self):
+        widget = QWidget()
+        vbox = QtWidgets.QVBoxLayout(widget)
+        for account in get_accounts(self.parent().user_id).fetchall():
+            acc_widget = Account(account[1], account[0], account[2], account[3], account[4])
+            vbox.addChildWidget(acc_widget)
+        
+        self.ui.passwordHolder.setWidget(widget)
+
+
+    def on_add_account(self):
+        self.parent().setCentralWidget(AddAccount(self.parent()))
+
 
 
 class Login(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
         
-        self.ui = login.LoginUi()
+        self.ui = LoginUi()
         self.ui.setupUi(self)
 
         self.ui.login.clicked.connect(self.on_login)
@@ -87,12 +208,11 @@ class Login(QWidget):
 
 
 class MainWindow(QMainWindow):
-    user_id = -1
-
-
     def __init__(self):
         # Initialize the Main Window
         super(QMainWindow, self).__init__()
+
+        self.user_id = -1
 
         # Set the size for the window
         self.setMinimumSize(QSize(800, 600))
@@ -112,4 +232,4 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

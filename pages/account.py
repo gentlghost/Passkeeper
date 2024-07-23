@@ -11,10 +11,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
+class AccountUi(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(700, 55)
+        Form.resize(700, 51)
         self.horizontalLayoutWidget = QtWidgets.QWidget(Form)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(-1, 10, 691, 31))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
@@ -33,9 +33,13 @@ class Ui_Form(object):
         self.password.setObjectName("password")
         self.horizontalLayout.addWidget(self.password)
         self.viewButton = QtWidgets.QToolButton(self.horizontalLayoutWidget)
+        icon = QtGui.QIcon.fromTheme("edit-find")
+        self.viewButton.setIcon(icon)
         self.viewButton.setObjectName("viewButton")
         self.horizontalLayout.addWidget(self.viewButton)
         self.deleteButton = QtWidgets.QToolButton(self.horizontalLayoutWidget)
+        icon = QtGui.QIcon.fromTheme("edit-delete")
+        self.deleteButton.setIcon(icon)
         self.deleteButton.setObjectName("deleteButton")
         self.horizontalLayout.addWidget(self.deleteButton)
         self.horizontalLayout.setStretch(0, 1)

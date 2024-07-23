@@ -1,6 +1,6 @@
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, exceptions
 import sqlite3
-
+from cryptography.fernet import Fernet
 
 conn = sqlite3.connect("passkeeper.db")
 cursor = conn.cursor()
@@ -18,13 +18,15 @@ def create_account(user_id: int, service: str, username: str, password: str) -> 
         return 3
     
     account = cursor.execute("SELECT * FROM accounts WHERE service = ? AND username = ?", (service, username))
-    if account.fetchone() is None:
+    if not account.fetchone() is None:
         return 4
 
-    pw_hash = ph.hash(password)
+    key = cursor.execute("SELECT pkey FROM users WHERE id = ?", (user_id, )).fetchone()
+    fernet = Fernet(key[0])
+    pw_encrypt = fernet.encrypt(password.encode())
     cursor.execute("""
         INSERT INTO accounts(user_id, service, username, hash) VALUES(?, ?, ?, ?)
-        """, (user_id, service, username, str(pw_hash), ))    
+        """, (user_id, service, username, str(pw_encrypt), ))    
 
     return 0
 
@@ -48,17 +50,26 @@ def create_user(name: str, username: str, password: str) -> int:
 
     # Add user, and return true
     pw_hash = ph.hash(password)
+    key = Fernet.generate_key()
     cursor.execute("""
-        INSERT INTO users(name, username, password) VALUES(?, ?, ?)
-        """, (name, username, str(pw_hash), ))
+        INSERT INTO users(name, username, password, pkey) VALUES(?, ?, ?, ?)
+        """, (name, username, str(pw_hash), key, ))
     
     return 0
 
 
-def get_user_id(username: str) -> int:
-    q = cursor.execute("SELECT id FROM users WHERE username = ?", (username, ))
-    user_id = q.fetchone()
-    return int(user_id[0])
+def decrypt_password(user_id: int, password: bytes) -> str:
+    key = cursor.execute("SELECT pkey FROM users WHERE id = ?", (user_id, )).fetchone()
+    fernet = Fernet(key[0])
+    return str(fernet.decrypt(password))
+
+
+def delete_account(account_id: int) -> None:
+    return cursor.execute("DELETE FROM accounts WHERE id = ?", (account_id, ))
+
+
+def get_accounts(user_id: int):
+    return cursor.execute("SELECT id, user_id, service, username, hash FROM accounts WHERE user_id = ?", (user_id, ))
 
 
 def get_name(user_id: int) -> str:
@@ -67,12 +78,10 @@ def get_name(user_id: int) -> str:
     return str(name[0])
 
 
-def get_accounts(user_id: int):
-    return cursor.execute("SELECT id, service, username, password FROM accounts WHERE user_id = ?", (user_id, ))
-
-
-def delete_account(account_id: int) -> None:
-    return cursor.execute("DELETE FROM accounts WHERE id = ?", (account_id, ))
+def get_user_id(username: str) -> int:
+    q = cursor.execute("SELECT id FROM users WHERE username = ?", (username, ))
+    user_id = q.fetchone()
+    return int(user_id[0])
 
 
 def verify_user(username: str, password: str) -> bool:
@@ -85,4 +94,7 @@ def verify_user(username: str, password: str) -> bool:
         return False
     
     # Verify the user
-    return ph.verify(pw[0], password)
+    try:
+        return ph.verify(pw[0], password)
+    except exceptions.VerifyMismatchError:
+        return False
