@@ -12,10 +12,11 @@ def create_account(user_id: int, service: str, username: str, password: str) -> 
     if not service or service.isspace():
         return 1
     
-    if not username or username.isspace():
+    username = username.strip(" ")
+    if not username or username.isspace() or username.find(" ") != -1:
         return 2
     
-    if not password or password.isspace():
+    if not password or password.isspace() or password.find(" ") != -1:
         return 3
     
     account = cursor.execute("SELECT * FROM accounts WHERE service = ? AND username = ?", (service, username))
@@ -37,10 +38,11 @@ def create_user(name: str, username: str, password: str) -> int:
     if not name or name.isspace():
         return 1
 
-    if not username or username.isspace():
+    username = username.strip(" ")
+    if not username or username.isspace() or username.find(" ") != -1:
         return 2
 
-    if not password or password.isspace():
+    if not password or password.isspace() or password.find(" ") != -1:
         return 3
 
     # Check if the user currently exists

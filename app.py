@@ -167,19 +167,20 @@ class Home(QWidget):
         else:
             self.ui.welcome.setText(f"Hello, {get_name(self.parent().user_id)}")
 
-        self.widget = QWidget()
-        self.vbox = QtWidgets.QVBoxLayout()
+        # This doesn't work, and I have no idea why!
+        self.container = QWidget()
+        self.grid = QtWidgets.QGridLayout(self.container)
+
         for account in get_accounts(self.parent().user_id).fetchall():
-            acc_widget = Account(self.widget, account[1], account[0], account[2], account[3], account[4])
-            self.vbox.addWidget(acc_widget)
-        
-        self.widget.setLayout(self.vbox)
+            acc_widget = Account(self.container, account[1], account[0], account[2], account[3], account[4])
+            self.grid.addWidget(acc_widget)
 
-        self.ui.passwordHolder.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.ui.passwordHolder.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.ui.passwordHolder.setWidgetResizable(True)
-        self.ui.passwordHolder.setWidget(self.widget)
+        self.password_holder = QtWidgets.QScrollArea(self)
+        self.password_holder.setGeometry(25, 150, 750, 400)
+        self.password_holder.setWidget(self.container)
+        self.password_holder.setWidgetResizable(True)
 
+        self.password_holder.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.ui.addButton.clicked.connect(self.on_add_account)
         
 

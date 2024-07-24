@@ -13,56 +13,39 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="gridLayoutWidget">
+  <widget class="QPushButton" name="addButton">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>-10</y>
-     <width>791</width>
-     <height>531</height>
+     <y>550</y>
+     <width>789</width>
+     <height>26</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="container">
-    <item row="1" column="0">
-     <widget class="QLabel" name="welcome">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Hello</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QScrollArea" name="passwordHolder">
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>787</width>
-         <height>466</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QPushButton" name="addButton">
-      <property name="text">
-       <string>Add Account</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <property name="text">
+    <string>Add Account</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="welcome">
+   <property name="geometry">
+    <rect>
+     <x>-10</x>
+     <y>-10</y>
+     <width>811</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Hello</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
  </widget>
  <resources/>
