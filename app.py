@@ -4,15 +4,14 @@ from utilities import (
     create_user, verify_user, get_user_id, get_name, create_account, get_accounts,
     delete_account, decrypt_password
 )
-from pages.account import AccountUi
 from pages.add_account import AddAccountUi
 from pages.create_user import CreateUserUi
-from pages.home import HomeUi
 from pages.login import LoginUi
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QDesktopWidget, QMessageBox, QLineEdit
+    QMainWindow, QWidget, QDesktopWidget, QMessageBox, QLineEdit, QGroupBox,
+    QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 )
 from PyQt5.QtCore import Qt, QSize
 
@@ -23,26 +22,44 @@ class Account(QWidget):
         
         self.user_id = user_id
         self.account_id = account_id
+
+        self.horizontal_layout = QHBoxLayout(self)
+
+        self.service = QLabel(self)
+        self.username = QLabel(self)
+        self.password = QLineEdit(self)
+        self.view_button = QPushButton("View", self)
+        self.delete_button = QPushButton("Delete", self)
+
+        self.service.setText(service)
+        self.username.setText(username)
+        self.password.setText(decrypt_password(self.user_id, password.encode()))
+
+        self.password.setEchoMode(QLineEdit.Password)
+        self.password.setReadOnly(True)
+
+        self.view_button.setIcon(QtGui.QIcon().fromTheme("edit-find"))
+        self.view_button.clicked.connect(self.on_view)
         
-        self.ui = AccountUi()
-        self.ui.setupUi(self)
-        self.ui.service.setText(service)
-        self.ui.username.setText(username)
-        self.ui.password.setText(decrypt_password(self.user_id, password.encode()))
+        self.delete_button.setIcon(QtGui.QIcon().fromTheme("delete"))
+        self.delete_button.clicked.connect(self.on_delete)
 
-        self.ui.password.setEchoMode(QLineEdit.Password)
+        self.horizontal_layout.addWidget(self.service)
+        self.horizontal_layout.addWidget(self.username)
+        self.horizontal_layout.addWidget(self.password)
+        self.horizontal_layout.addWidget(self.view_button)
+        self.horizontal_layout.addWidget(self.delete_button)
 
-        self.ui.viewButton.clicked.connect(self.on_view)
-        self.ui.deleteButton.clicked.connect(self.on_delete)
+        self.horizontal_layout.setStretchFactor(self.horizontal_layout, 5)
 
 
     def on_view(self):
-        if self.ui.password.echoMode() == QLineEdit.Password:
-            self.ui.password.setEchoMode(QLineEdit.Normal)
-            self.ui.viewButton.setText("Hide")
+        if self.password.echoMode() == QLineEdit.Password:
+            self.password.setEchoMode(QLineEdit.Normal)
+            self.view_button.setText("Hide")
         else:
-            self.ui.password.setEchoMode(QLineEdit.Password)
-            self.ui.viewButton.setText("View")
+            self.password.setEchoMode(QLineEdit.Password)
+            self.view_button.setText("View")
 
 
     def on_delete(self, s):
@@ -159,30 +176,37 @@ class Error(QMessageBox):
 class Home(QWidget):
     def __init__(self, parent: QWidget):
         super(QWidget, self).__init__(parent)
-        self.ui = HomeUi()
-        self.ui.setupUi(self)
+
+        self.v_layout = QVBoxLayout(self)
+        
+        self.welcome = QLabel()
+        self.add_button = QPushButton("Add Account")
 
         if self.parent().user_id == -1:
-            self.ui.welcome.setText("Hello")
+            self.welcome.setText("Hello")
         else:
-            self.ui.welcome.setText(f"Hello, {get_name(self.parent().user_id)}")
+            self.welcome.setText(f"Hello, {get_name(self.parent().user_id)}")
+
+        self.v_layout.addWidget(self.welcome)
+        self.v_layout.addWidget(self.add_button)
 
         # This doesn't work, and I have no idea why!
-        self.container = QWidget()
-        self.grid = QtWidgets.QGridLayout(self.container)
+        self.container = QGroupBox()
+        self.form_layout = QtWidgets.QFormLayout(self.container)
 
         for account in get_accounts(self.parent().user_id).fetchall():
             acc_widget = Account(self.container, account[1], account[0], account[2], account[3], account[4])
-            self.grid.addWidget(acc_widget)
+            self.form_layout.addWidget(acc_widget)
 
         self.password_holder = QtWidgets.QScrollArea(self)
-        self.password_holder.setGeometry(25, 150, 750, 400)
         self.password_holder.setWidget(self.container)
         self.password_holder.setWidgetResizable(True)
+        self.password_holder.setFixedHeight(400)
 
         self.password_holder.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.ui.addButton.clicked.connect(self.on_add_account)
+        self.add_button.clicked.connect(self.on_add_account)
         
+        self.v_layout.addWidget(self.password_holder)
 
     def on_add_account(self):
         self.parent().setCentralWidget(AddAccount(self.parent()))
