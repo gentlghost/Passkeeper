@@ -11,7 +11,7 @@ from pages.login import LoginUi
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QDesktopWidget, QMessageBox, QLineEdit, QGroupBox,
-    QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+    QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QSize
 
@@ -41,7 +41,7 @@ class Account(QWidget):
         self.view_button.setIcon(QtGui.QIcon().fromTheme("edit-find"))
         self.view_button.clicked.connect(self.on_view)
         
-        self.delete_button.setIcon(QtGui.QIcon().fromTheme("delete"))
+        self.delete_button.setIcon(QtGui.QIcon().fromTheme("edit-delete"))
         self.delete_button.clicked.connect(self.on_delete)
 
         self.horizontal_layout.addWidget(self.service)
@@ -64,6 +64,7 @@ class Account(QWidget):
 
     def on_delete(self, s):
         confirm = QMessageBox(self)
+        confirm.setWindowTitle("Are you sure?")
         confirm.setText("Are you sure you want to delete the account?")
         confirm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         confirm.setIcon(QMessageBox.Question)
@@ -180,6 +181,13 @@ class Home(QWidget):
         self.v_layout = QVBoxLayout(self)
         
         self.welcome = QLabel()
+        self.welcome.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.welcome.setAlignment(Qt.AlignCenter)
+        
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.welcome.setFont(font)
+
         self.add_button = QPushButton("Add Account")
 
         if self.parent().user_id == -1:
@@ -190,7 +198,6 @@ class Home(QWidget):
         self.v_layout.addWidget(self.welcome)
         self.v_layout.addWidget(self.add_button)
 
-        # This doesn't work, and I have no idea why!
         self.container = QGroupBox()
         self.form_layout = QtWidgets.QFormLayout(self.container)
 
